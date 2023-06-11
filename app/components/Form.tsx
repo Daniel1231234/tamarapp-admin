@@ -15,6 +15,10 @@ const Form: React.FC<FormProps> = ({}) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      if (!imageUrl) {
+        alert("לא לשכוח תמונה :)");
+        return;
+      }
       const newNote = await axios.post("/api/send", {
         name,
         note,
@@ -50,6 +54,7 @@ const Form: React.FC<FormProps> = ({}) => {
           שם מלא
         </label>
         <input
+          required
           type="text"
           id="name"
           value={name}
@@ -65,6 +70,7 @@ const Form: React.FC<FormProps> = ({}) => {
           פתק
         </label>
         <TextAreaAutoSize
+          required
           id="note"
           minRows={3}
           value={note}
@@ -80,6 +86,7 @@ const Form: React.FC<FormProps> = ({}) => {
           מספר טלפון
         </label>
         <input
+          required
           type="tel"
           id="phone"
           value={phone}
