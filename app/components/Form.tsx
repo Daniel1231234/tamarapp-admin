@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TextAreaAutoSize from "react-textarea-autosize";
 import { CldUploadButton } from "next-cloudinary";
 import axios from "axios";
@@ -11,30 +11,37 @@ interface FormProps {}
 
 const Form: React.FC<FormProps> = ({}) => {
   const formRef = useRef<HTMLFormElement | null>(null);
-
-  const [name, setName] = useState("");
+  const [name, setName] = useState<string | null>("");
   const [note, setNote] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<string | null>("");
   const [imageUrl, setImageUrl] = useState("");
-  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [mediaType, setMediaType] = useState<"image" | "video" | "choose">(
+    "choose"
+  );
   const [youtubeUrl, setYoutubeUrl] = useState("");
-
   const [openEmoji, setOpenEmoji] = useState(false);
 
   useOnClickOutside(formRef, () => setOpenEmoji(false));
 
+  useEffect(() => {
+    const name = localStorage.getItem("name");
+    const phone = localStorage.getItem("phone");
+    if (name || phone) {
+      setName(name);
+      setPhone(phone);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!localStorage.getItem("name")) localStorage.setItem("name", name!);
+    if (!localStorage.getItem("phone")) localStorage.setItem("phone", phone!);
     try {
-      if (mediaType === "image" && !imageUrl) {
-        alert("לא לשכוח תמונה :)");
-        return;
-      }
       const newNote = await axios.post("/api/send", {
         name,
         note,
         phone,
-        imageUrl,
+        imageUrl: imageUrl ?? "",
         mediaType,
         youtubeUrl,
       });
@@ -81,7 +88,7 @@ const Form: React.FC<FormProps> = ({}) => {
           required
           type="text"
           id="name"
-          value={name}
+          value={name!}
           onChange={(e) => setName(e.target.value)}
           className="mt-1 px-4 py-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
@@ -93,6 +100,7 @@ const Form: React.FC<FormProps> = ({}) => {
         >
           פתק
         </label>
+
         <div className="relative">
           {openEmoji && (
             <CustomEmojiPicker handleEmojiClick={handleEmojiClick} />
@@ -106,7 +114,7 @@ const Form: React.FC<FormProps> = ({}) => {
             className="mt-1 px-4 py-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
           <button
-            className=""
+            className="absolute  bottom-1 -right-8  bg-indigo-500 text-white rounded-full p-1 hover:bg-indigo-600 transition duration-300 ease-in-out shadow-lg group-hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-200"
             title="Emoji picker"
             onClick={() => setOpenEmoji(true)}
           >
@@ -125,7 +133,7 @@ const Form: React.FC<FormProps> = ({}) => {
           required
           type="tel"
           id="phone"
-          value={phone}
+          value={phone!}
           onChange={(e) => setPhone(e.target.value)}
           className="mt-1 px-4 py-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
@@ -143,11 +151,12 @@ const Form: React.FC<FormProps> = ({}) => {
           onChange={handleMediaTypeChange}
           className="mt-1 px-4 py-2 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
+          <option value="">בחר תמונה או סרטון</option>
           <option value="image">תמונה</option>
           <option value="video">וידאו</option>
         </select>
       </div>
-      {mediaType === "image" ? (
+      {mediaType === "image" && (
         <div className="mb-4">
           <label
             htmlFor="image"
@@ -161,7 +170,8 @@ const Form: React.FC<FormProps> = ({}) => {
             uploadPreset="wz721uu6"
           />
         </div>
-      ) : (
+      )}
+      {mediaType === "video" && (
         <div className="mb-4">
           <label
             htmlFor="youtubeUrl"

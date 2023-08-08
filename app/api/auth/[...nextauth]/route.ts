@@ -13,8 +13,8 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                username: { label: "Username", type: "text", placeholder: "jsmith" },
-                password: { label: "Password", type: "password" }
+                username: {  },
+                password: {  }
             },
             async authorize(credentials, req) {
                 console.log('creds => ', credentials)
